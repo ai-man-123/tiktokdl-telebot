@@ -184,15 +184,6 @@ bot.on("message", async (ctx) => {
     };
 });
 
-
-
-bot.launch().then(() => {
-    console.log("Bot started");
-    console.log("Bot connected to: " + bot.botInfo.username);
-    connected = true
-}).catch(() => {
-console.log("Failed connect to Telegram API, please check your bot token!")
-})
 serve.set("json spaces", 2);
 serve.set("trust proxy", 1);
 
@@ -205,6 +196,15 @@ res.status(200).json({ status: 200, message: "Bot Success Connected to Telegram 
 }
 })
 
+
+bot.launch().then(() => {
+    console.log("Bot started");
+    console.log("Bot connected to: " + bot.botInfo.username);
+    connected = true
+}).catch(() => {
+console.log("Failed connect to Telegram API, please check your bot token!")
+}).finnaly(() => {
 serve.listen(PORT, () => {
 console.log("HTTP Server Running On PORT: "+PORT);
+})
 })
