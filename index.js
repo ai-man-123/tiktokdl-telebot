@@ -8,6 +8,11 @@ const client = bot.telegram;
 const { color, bgColor } = require('./lib/color');
 const { nowm, getVideoMeta } = require('./lib/tiktok');
 const { tools } = require("caliph-api");
+const express = require("express");
+const serve = express();
+const PORT = process.env.PORT || 3030;
+
+let connected = false;
 
 function isUrl(url) {
     return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/, 'gi'))
@@ -165,7 +170,7 @@ bot.on("message", async (ctx) => {
                             let author = tiktok.ID;
                             let author_url = "https://www.tiktok.com/" + author;
                             await client.deleteMessage(chatId, before.message_id);
-                            await client.sendPhoto(chatId, image, { caption: `*Title:* *${title}*\n*Author:* *${author}*\n*Author URL:* *${author_url}*\n*Views:* *${stats.playCount}*\n*Likes:* *${stats.diggCount}*\n*Shares:* *${stats.shareCount}*\n*Comments:* *${stats.commentCount}*\n*URL:* *${i}*`, parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "With WaterMark", callback_data: `wm ${(await tools.shortlink(valid_tiktok_url[0])).result.url}` }], [{ text: "No WaterMark", callback_data: `nowm ${( await tools.shortlink(valid_tiktok_url[0])).result.url}` }]] } });
+                            await client.sendPhoto(chatId, image, { caption: `*Title:* *${title}*\n*Author:* *${author}*\n*Author URL:* *${author_url}*\n*Views:* *${stats.playCount}*\n*Likes:* *${stats.diggCount}*\n*Shares:* *${stats.shareCount}*\n*Comments:* *${stats.commentCount}*`, parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "With WaterMark", callback_data: `wm ${(await tools.shortlink(valid_tiktok_url[0])).result.url}` }], [{ text: "No WaterMark", callback_data: `nowm ${( await tools.shortlink(valid_tiktok_url[0])).result.url}` }]] } });
                         }
                     }
                 } else {
@@ -184,6 +189,22 @@ bot.on("message", async (ctx) => {
 bot.launch().then(() => {
     console.log("Bot started");
     console.log("Bot connected to: " + bot.botInfo.username);
+    connected = true
 }).catch(() => {
-console.log("Failed to connect to Telegram API, please check your bot token!")
+console.log("Failed connect to Telegram API, please check your bot token!")
+})
+serve.set("json spaces", 2);
+serve.set("trust proxy", 1);
+
+serve.all("/", (req, res) => {
+if (!connected) {
+res.status(500).send({ status: 500, message: "Failed connect to Telegram API, please check your bot token!" })
+} else {
+let clientInfo = await client.getMe();
+res.status(200).json({ status: 200, message: "Bot Success Connected to Telegram API", clientInfo });
+}
+})
+
+serve.listen(PORT, () => {
+console.log("HTTP Server Running On PORT: "+PORT);
 })
