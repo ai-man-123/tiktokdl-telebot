@@ -196,7 +196,7 @@ console.log("Failed connect to Telegram API, please check your bot token!")
 serve.set("json spaces", 2);
 serve.set("trust proxy", 1);
 
-serve.all("/", (req, res) => {
+serve.all("/", async (req, res) => {
 if (!connected) {
 res.status(500).send({ status: 500, message: "Failed connect to Telegram API, please check your bot token!" })
 } else {
