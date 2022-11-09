@@ -51,7 +51,21 @@ bot.on("callback_query", async (ctx) => {
     const command = data.split(" ")[0];
     const args = data.split(" ").slice(1);
     
+    if (command == "audio") {
+     await client.sendChatAction(chatId, "typing")
+    let before_msg = await client.sendMessage(chatId, "Please wait. downloading audio...", { reply_to_message_id: messageId });
+       try {
+        await client.answerCbQuery(ctx.callbackQuery.id, "Downloading audio...", true);
+        let datas = await getVideoMeta(args[0]);
+        await client.sendChatAction(chatId, "upload_audio")
+       await client.sendAudio(chatId, { source: await getBuffer(datas.Audio.playUrl), mime_type: "audio/mpeg", filename: datas.Video.id +".mp4" },  { title: datas.Audio.title, performer: datas.Audio.authorName, duration: datas.Audio.duration, caption: "Downloaded by *@"+bot.botInfo.username+"*", parse_mode: "Markdown" });
+        client.deleteMessage(chatId, before_msg.message_id);
+       } catch (e) {
+       await ctx.reply("Something went wrong. Please try again later.");
+       }
+    }
     if (command == "nowm") {
+        await client.sendChatAction(chatId, "typing")
         let before_msg = await client.sendMessage(chatId, "Please wait. downloading video without watermark...", { reply_to_message_id: messageId });
         try {
             await client.answerCbQuery(ctx.callbackQuery.id, "Downloading No WaterMark Video...", true);
@@ -66,15 +80,16 @@ bot.on("callback_query", async (ctx) => {
             let videoDuration = videoInfo.Video.duration;
             let caption = `*Tiktok No WaterMark*\n\n*Title:* *${videoCaption}*\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
             let buffer = await getBuffer(videoUrl);
+            await client.sendChatAction(chatId, "upload_video")
             await client.sendVideo(chatId, { source: buffer, filename: videoName, caption: caption }, { caption, parse_mode: "Markdown" });
           await client.deleteMessage(chatId, before_msg.message_id);
-          await client.deleteMessage(chatId, messageId);
         } catch (err) {
             console.log(err);
             await ctx.reply("Something went wrong. Please try again later.");
         }
     }
     if (command == "wm") {
+        await await client.sendChatAction(chatId, "typing")
         let before_msg = await client.sendMessage(chatId, "Please wait. downloading video with watermark...", { reply_to_message_id: messageId });
         await client.answerCbQuery(ctx.callbackQuery.id, "Downloading WaterMark Video...", true);
         try {
@@ -87,8 +102,8 @@ bot.on("callback_query", async (ctx) => {
             let videoDuration = videoInfo.Video.duration;
             let caption = `*Tiktok WaterMark*\n\n*Title:* ${videoCaption}\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
             let buffer = await getBuffer(videoUrl);
+            await client.sendChatAction(chatId, "upload_video")
             await client.sendVideo(chatId, { source: buffer, filename: videoName }, { caption, parse_mode: "Markdown" });
-           await client.deleteMessage(chatId, messageId);
           await client.deleteMessage(chatId, before_msg.message_id);
         } catch (err) {
             console.log(err);
@@ -161,20 +176,27 @@ bot.on("message", async (ctx) => {
                     for (let i of isUrl(body)) {
                         let valid_tiktok_url = isValidTiktokUrl(i) || isValidTiktokUrlShort(i);
                         if (valid_tiktok_url) {
+                            await client.sendChatAction(chatId, "typing")
                             let before = await ctx.reply("Please wait...", { reply_to_message_id: messageId });
                             let tiktok = await getVideoMeta(i);
+                            if (tiktok.msg) return client.editMessageText(chatId, before.message_id, null, "Error: "+tiktok.msg)
                             let image = tiktok.Video.cover;
                             let video_id = tiktok.Video.id;
                             let stats = tiktok.stats;
                             let title = tiktok.title;
+                            let callback_links = await (await tools.shortlink(valid_tiktok_url[0])).result.url
                             let author = tiktok.ID;
                             let author_url = "https://www.tiktok.com/" + author;
                             await client.deleteMessage(chatId, before.message_id);
-                            await client.sendPhoto(chatId, image, { caption: `*Title:* *${title}*\n*Author:* *${author}*\n*Author URL:* *${author_url}*\n*Views:* *${stats.playCount}*\n*Likes:* *${stats.diggCount}*\n*Shares:* *${stats.shareCount}*\n*Comments:* *${stats.commentCount}*`, parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "With WaterMark", callback_data: `wm ${(await tools.shortlink(valid_tiktok_url[0])).result.url}` }], [{ text: "No WaterMark", callback_data: `nowm ${( await tools.shortlink(valid_tiktok_url[0])).result.url}` }]] } });
+                            await client.sendChatAction(chatId, "upload_photo")
+                            await client.sendPhoto(chatId, image, { caption: `*Title:* *${title}*\n*Author:* *${author}*\n*Author URL:* *${author_url}*\n*Views:* *${stats.playCount}*\n*Likes:* *${stats.diggCount}*\n*Shares:* *${stats.shareCount}*\n*Comments:* *${stats.commentCount}*`, parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "🎥 With WaterMark", callback_data: `wm ${callback_links}` }], [{ text: "🎥 No WaterMark", callback_data: `nowm ${callback_links}` }], [{ text: "🎵 Audio", callback_data: "audio "+callback_links}]] } });
                         }
                     }
                 } else {
-                    if (!isGroup) await ctx.reply("send me a tiktok video link to download it!", { reply_to_message_id: messageId });
+                    if (!isGroup) {
+                   await client.sendChatAction(chatId, "typing")
+                   await ctx.reply("send me a tiktok video link to download it!", { reply_to_message_id: messageId });
+                  }
                 }
                 break;
                 break
@@ -203,7 +225,7 @@ bot.launch().then(() => {
     connected = true
 }).catch(() => {
 console.log("Failed connect to Telegram API, please check your bot token!")
-}).finnaly(() => {
+}).finally(() => {
 serve.listen(PORT, () => {
 console.log("HTTP Server Running On PORT: "+PORT);
 })
