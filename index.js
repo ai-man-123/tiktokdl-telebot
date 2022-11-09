@@ -58,7 +58,7 @@ bot.on("callback_query", async (ctx) => {
         await client.answerCbQuery(ctx.callbackQuery.id, "Downloading audio...", true);
         let datas = await getVideoMeta(args[0]);
         await client.sendChatAction(chatId, "upload_audio")
-       await client.sendAudio(chatId, { source: await getBuffer(datas.Audio.playUrl), mime_type: "audio/mpeg", filename: datas.Video.id +".mp4" },  { title: datas.Audio.title, performer: datas.Audio.authorName, duration: datas.Audio.duration, caption: "Downloaded by *@"+bot.botInfo.username+"*", parse_mode: "Markdown" });
+       await client.sendAudio(chatId, { source: await getBuffer(datas.Audio.playUrl), mime_type: "audio/mpeg", filename: datas.Video.id +".mp3" },  { title: datas.Audio.title, performer: datas.Audio.authorName, duration: datas.Audio.duration, caption: "_Downloaded by @"+bot.botInfo.username+"_", parse_mode: "Markdown" });
         client.deleteMessage(chatId, before_msg.message_id);
        } catch (e) {
        await ctx.reply("Something went wrong. Please try again later.");
@@ -78,10 +78,10 @@ bot.on("callback_query", async (ctx) => {
             let stats = videoInfo.stats;
             let videoStats = `*${stats.diggCount}* Likes, *${stats.commentCount}* Comments, *${stats.shareCount}* Shares`;
             let videoDuration = videoInfo.Video.duration;
-            let caption = `*Tiktok No WaterMark*\n\n*Title:* *${videoCaption}*\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
+            let caption = `_Tiktok No WaterMark_\n\n*Title:* ${videoCaption}\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
             let buffer = await getBuffer(videoUrl);
             await client.sendChatAction(chatId, "upload_video")
-            await client.sendVideo(chatId, { source: buffer, filename: videoName, caption: caption }, { caption, parse_mode: "Markdown" });
+            await client.sendVideo(chatId, { source: buffer, filename: videoName, mime_type: "video/mp4" }, { caption, width: videoInfo.Video.width, height: videoInfo.Video.height, duration: videoInfo.Video.duration, supports_streaming: true,  thumb: { source: await getBuffer(videoInfo.Video.originCover) },  parse_mode: "Markdown" });
           await client.deleteMessage(chatId, before_msg.message_id);
         } catch (err) {
             console.log(err);
@@ -100,10 +100,10 @@ bot.on("callback_query", async (ctx) => {
             let stats = videoInfo.stats;
             let videoStats = `*${stats.diggCount}* Likes, *${stats.commentCount}* Comments, *${stats.shareCount}* Shares`;
             let videoDuration = videoInfo.Video.duration;
-            let caption = `*Tiktok WaterMark*\n\n*Title:* ${videoCaption}\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
+            let caption = `_Tiktok WaterMark_\n\n*Title:* ${videoCaption}\n*Stats:* ${videoStats}\n*Duration:* ${videoDuration} (s)\n\n*Downloaded by:* @${bot.botInfo.username}`;
             let buffer = await getBuffer(videoUrl);
-            await client.sendChatAction(chatId, "upload_video")
-            await client.sendVideo(chatId, { source: buffer, filename: videoName }, { caption, parse_mode: "Markdown" });
+            await client.sendChatAction(chatId, "upload_video");
+            await client.sendVideo(chatId, { source: buffer, filename: videoName, mime_type: "video/mp4" }, { caption, width: videoInfo.Video.width, height: videoInfo.Video.height, duration: videoInfo.Video.duration, supports_streaming: true,  thumb: { source: await getBuffer(videoInfo.Video.originCover) },  parse_mode: "Markdown" });
           await client.deleteMessage(chatId, before_msg.message_id);
         } catch (err) {
             console.log(err);
@@ -189,11 +189,11 @@ bot.on("message", async (ctx) => {
                             let author_url = "https://www.tiktok.com/" + author;
                             await client.deleteMessage(chatId, before.message_id);
                             await client.sendChatAction(chatId, "upload_photo")
-                            await client.sendPhoto(chatId, image, { caption: `*Title:* *${title}*\n*Author:* *${author}*\n*Author URL:* *${author_url}*\n*Views:* *${stats.playCount}*\n*Likes:* *${stats.diggCount}*\n*Shares:* *${stats.shareCount}*\n*Comments:* *${stats.commentCount}*`, parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "🎥 With WaterMark", callback_data: `wm ${callback_links}` }], [{ text: "🎥 No WaterMark", callback_data: `nowm ${callback_links}` }], [{ text: "🎵 Audio", callback_data: "audio "+callback_links}]] } });
+                            await client.sendPhoto(chatId, image, { caption: `<b>Title:</b> ${title}\n<b>Author:</b> <a href="${author_url}">${author}</a>\n<b>Views:</b> ${stats.playCount}\n<b>Likes:</b> ${stats.diggCount}\n<b>Shares:</b> ${stats.shareCount}\n<b>Comments:</b> ${stats.commentCount}`, parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "🎥 With WaterMark", callback_data: `wm ${callback_links}` }], [{ text: "🎥 No WaterMark", callback_data: `nowm ${callback_links}` }], [{ text: "🎵 Audio", callback_data: "audio "+callback_links}]] } });
                         }
                     }
                 } else {
-                    if (!isGroup) {
+           if (!isGroup) {
                    await client.sendChatAction(chatId, "typing")
                    await ctx.reply("send me a tiktok video link to download it!", { reply_to_message_id: messageId });
                   }
