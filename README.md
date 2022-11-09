@@ -12,9 +12,9 @@ Edit Bot Token & Admin ID in config.js
 ```sh
 node .
 ```
-### Demo
+## Demo
 https://user-images.githubusercontent.com/92326690/200725417-c2f25ad3-3785-46f9-8bc5-ac08943df97f.mp4
 
-### Try Bot
+## Try Bot
 * [Click Here](https://TikTokDwnlderBot.t.me)
 
