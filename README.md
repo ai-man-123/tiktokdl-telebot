@@ -7,7 +7,14 @@ Simple TikTok Downloader Telegram Bot by [CaliphDev](https://caliph.my.id)
 git clone https://github.com/caliphdev/tiktokdl-telebot
 npm install
 ```
-Edit Bot Token & Admin ID in config.js
+
+### Edit config.js
+Change Admin ID & Bot token
+### 
+```sh
+nano config.js
+```
+
 ### Running the scripts
 ```sh
 node .
